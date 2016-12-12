@@ -1,0 +1,18 @@
+WELCOME TO MINESWEEPER!
+
+Starting up the game:
+1. Open the Minesweeper.py file on your computer.
+2. Press the F5 key on your keyboard.
+3. Enjoy!
+
+How to Play:
+1. Left click a square to open and reveal its state.
+
+Rules:
+1. If you click on a square containing a mine, you lose.
+2. If you open all the non-mine containing squares, you win.
+3. Have fun!
+
+Creators: 
+Albert Kwok
+Gianluca Bonanno
