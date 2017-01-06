@@ -17,6 +17,7 @@ class Cell:
     def __init__(self):
         self.__state = EMPTY
         self.__revealed = False
+        self.__flagged = False
     #-----------------------------------------------
     #Predicates
     #Returns true if the cell is a mine
@@ -26,6 +27,9 @@ class Cell:
     #Returns if the cell is revealed or not
     def isRevealed(self):
         return self.__revealed
+
+    def isFlagged(self):
+        return self.__flagged
     #-----------------------------------------------
     #Mutators
     #Sets reveal to true
@@ -39,6 +43,12 @@ class Cell:
     #Increases the cell state by 1
     def incrementState(self):
         self.__state += 1
+
+    def flag(self):
+        self.__flagged = True
+
+    def unflag(self):
+        self.__flagged = False
     #-----------------------------------------------
     #Accessors
     #Returns the cell's state

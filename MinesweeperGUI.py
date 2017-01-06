@@ -22,10 +22,17 @@ EMPTY = 0
 
 class MinesweeperGUI:
     def __init__(self):
+        self.__flagMode = False;
         self.__mainWindow = tkinter.Tk()
         self.__mainWindow.configure(background = "#000000")
-        self.__mainWindow.title("Minesweeper 1.1")
+        self.__mainWindow.title("Minesweeper 1.2")
         #Creates 81 buttons for the 9x9 grid.
+        self.__flag = Button(self.__mainWindow, bg = 'white', text = "F", padx = 5, \
+                            command = lambda: self.cellClick(-1,10,4))
+        self.__flag.grid(row = 10, column = 4)
+        #self.__restart = Button(self.__mainWindow, bg = '#8a8a8a', text = "R", padx = 4, \
+                            #command = lambda: self.cellClick(-1,10,0))
+        #self.__restart.grid(row = 10, column = 0)
         self.__button1 = Button(self.__mainWindow, borderwidth=1, \
                             command = lambda: self.cellClick(1,0,0), padx = 6, bd = 2, bg='#0000ff', text = "  ")
         self.__button1.grid(row=0, column=0)
@@ -298,24 +305,46 @@ class MinesweeperGUI:
     def cellClick(self, pos, x, y):
         if not newBoard.isGameOver():
             b = self.__buttonList[pos-1]
-            newBoard.getBoard()[x][y].reveal()
-            if newBoard.getBoard()[x][y].isMine():
-                newBoard.gameOver()
-                newBoard.revealAll()
-                self.revealButtons()
-                self.__gameStateMessage = messagebox.showinfo("Game Over", "You Blew Up!")
+            if not self.__flagMode and x == 10 and y == 4:
+                self.__flag.configure(bg = 'green')
+                self.__flagMode = True
+            elif self.__flagMode and x == 10 and y == 4:
+                self.__flag.configure(bg = 'white')
+                self.__flagMode = False
+            elif newBoard.getBoard()[x][y].isFlagged():
+                b.configure(text = "  ", bg = 'blue',fg = '#ffffff')
+                newBoard.getBoard()[x][y].unflag()
+            elif newBoard.getBoard()[x][y].isMine():
+                if self.__flagMode:
+                    b.configure(text = "F", bg = 'orange',fg = '#ffffff')
+                    newBoard.getBoard()[x][y].flag()
+                else:
+                    newBoard.getBoard()[x][y].reveal()
+                    newBoard.gameOver()
+                    newBoard.revealAll()
+                    self.revealButtons()
+                    self.__gameStateMessage = messagebox.showinfo("Game Over", "You Blew Up!")
             elif newBoard.isGameWon():
+                newBoard.getBoard()[x][y].reveal()
                 newBoard.gameOver()
                 self.__gameStateMessage = messagebox.showinfo("Victory", "You Won!")
                 newBoard.revealAll()
                 self.revealButtons()  
             elif newBoard.getBoard()[x][y].getState() == 0:
-                newBoard.getBoard()[x][y].reveal()
-                self.revealAdjacentZero(pos-1, x, y)
-                b.configure(text = str(newBoard.getBoard()[x][y].getState()),fg = '#ffffff')                      
+                if self.__flagMode and not newBoard.getBoard()[x][y].isRevealed():
+                    b.configure(text = "F", bg = 'orange',fg = '#ffffff')
+                    newBoard.getBoard()[x][y].flag()
+                else:
+                    newBoard.getBoard()[x][y].reveal()
+                    self.revealAdjacentZero(pos-1, x, y)
+                    b.configure(text = str(newBoard.getBoard()[x][y].getState()),fg = '#ffffff', bg = 'blue')                      
             else:
-                newBoard.getBoard()[x][y].reveal()
-                b.configure(text = str(newBoard.getBoard()[x][y].getState()),fg = '#ffffff')
+                if self.__flagMode and not newBoard.getBoard()[x][y].isRevealed():
+                    b.configure(text = "F", bg = 'orange',fg = '#ffffff')
+                    newBoard.getBoard()[x][y].flag()
+                else:
+                    newBoard.getBoard()[x][y].reveal()
+                    b.configure(text = str(newBoard.getBoard()[x][y].getState()),fg = '#ffffff', bg = 'blue')
             
     #Reveals all cells when the game is won/lost
     def revealButtons(self):
@@ -324,54 +353,64 @@ class MinesweeperGUI:
             for y in range(MAX_BOARD_Y):
                 b = self.__buttonList[listIndex]
                 if newBoard.getBoard()[y][x].getState() == -1:
-                    b.configure(bg = '#ff0000')
+                    b.configure(bg = '#ff0000', text = "  ")
                 else:
-                    b.configure(text = str(newBoard.getBoard()[y][x].getState()), fg = '#ffffff' )
+                    b.configure(text = str(newBoard.getBoard()[y][x].getState()), fg = '#ffffff', bg = 'blue')
                 listIndex += 1
 
     #Reveal everything adjacent to a 0
     def revealAdjacentZero(self, pos, x, y):
         if x > 0:
             b = self.__buttonList[pos-1]
-            b.configure(text = str(newBoard.getBoard()[x-1][y].getState()),fg = '#ffffff')
+            b.configure(text = str(newBoard.getBoard()[x-1][y].getState()),fg = '#ffffff', bg = 'blue')
             newBoard.getBoard()[x-1][y]
             newBoard.getBoard()[x-1][y].reveal()
+            newBoard.getBoard()[x-1][y].unflag()
             #if newBoard.getBoard()[x-1][y].getState() == 0:
                 #self.revealAdjacentZero(pos-1, x-1, y)
         if x < 8:
             b = self.__buttonList[pos+1]
-            b.configure(text = str(newBoard.getBoard()[x+1][y].getState()),fg = '#ffffff')
+            b.configure(text = str(newBoard.getBoard()[x+1][y].getState()),fg = '#ffffff', bg = 'blue')
             newBoard.getBoard()[x+1][y].reveal()
+            newBoard.getBoard()[x+1][y].unflag()
             #if newBoard.getBoard()[x+1][y].getState() == 0:
                 #self.revealAdjacentZero(pos+1, x+1, y)
         if y > 0:
             b = self.__buttonList[pos - 9]
-            b.configure(text = str(newBoard.getBoard()[x][y-1].getState()),fg = '#ffffff')
+            b.configure(text = str(newBoard.getBoard()[x][y-1].getState()),fg = '#ffffff', bg = 'blue')
             newBoard.getBoard()[x][y-1].reveal()
+            newBoard.getBoard()[x][y-1].unflag()
             #if newBoard.getBoard()[x][y-1].getState() == 0:
                 #self.revealAdjacentZero(pos-9, x, y-1)
         if y < 8:
             b = self.__buttonList[pos + 9]
-            b.configure(text = str(newBoard.getBoard()[x][y+1].getState()),fg = '#ffffff')
+            b.configure(text = str(newBoard.getBoard()[x][y+1].getState()),fg = '#ffffff', bg = 'blue')
             newBoard.getBoard()[x][y+1].reveal()
+            newBoard.getBoard()[x][y+1].unflag()
             #if newBoard.getBoard()[x][y+1].getState() == 0:
                 #self.revealAdjacentZero(pos+9, x, y+1)
         if x > 0 and y > 0:
             b = self.__buttonList[pos -1 - 9]
-            b.configure(text = str(newBoard.getBoard()[x-1][y-1].getState()),fg = '#ffffff')
+            b.configure(text = str(newBoard.getBoard()[x-1][y-1].getState()),fg = '#ffffff', bg = 'blue')
             newBoard.getBoard()[x-1][y-1].reveal()
+            newBoard.getBoard()[x-1][y-1].unflag()
         if x > 0 and y < 8:
             b = self.__buttonList[pos -1 + 9]
-            b.configure(text = str(newBoard.getBoard()[x-1][y+1].getState()),fg = '#ffffff')
+            b.configure(text = str(newBoard.getBoard()[x-1][y+1].getState()),fg = '#ffffff', bg = 'blue')
             newBoard.getBoard()[x-1][y+1].reveal()
+            newBoard.getBoard()[x-1][y+1].unflag()
         if x < 8 and y > 0:
             b = self.__buttonList[pos +1 - 9]
-            b.configure(text = str(newBoard.getBoard()[x+1][y-1].getState()),fg = '#ffffff')
+            b.configure(text = str(newBoard.getBoard()[x+1][y-1].getState()),fg = '#ffffff', bg = 'blue')
             newBoard.getBoard()[x+1][y-1].reveal()
+            newBoard.getBoard()[x+1][y-1].unflag()
         if x < 8 and y < 8:
             b = self.__buttonList[pos +1 + 9]
-            b.configure(text = str(newBoard.getBoard()[x+1][y+1].getState()), fg = '#ffffff')
+            b.configure(text = str(newBoard.getBoard()[x+1][y+1].getState()), fg = '#ffffff', bg = 'blue')
             newBoard.getBoard()[x+1][y+1].reveal()
+            newBoard.getBoard()[x+1][y+1].unflag()
+
+    #def createGame(self):
 
                         
 def main():
